@@ -135,14 +135,22 @@ ts_filtered_names = [mouse for mouse in ts_filtered_names if mouse not in exclud
 
 print(f"Excluded {len(excluded_mice)} mice. Remaining mice: {len(ts_filtered_names)}")
 #%%
+cog_data_filtered["genotype"] = cog_data_filtered["grp"].str.split("_").str[0]
+cog_data_filtered["treatment"] = cog_data_filtered["grp"].str.split("_").str[1]
 
+#Hot encoding genotype and treatment
+encoded_genotype = pd.get_dummies(cog_data_filtered["genotype"])
+encoded_treatment = pd.get_dummies(cog_data_filtered["treatment"])
+cog_data_filtered = pd.concat([cog_data_filtered, encoded_genotype , encoded_treatment], axis=1)
+
+#%%
 assert len(ts_filtered) == len(cog_data_sorted), "Mismatch in time series and cognitive data counts"
 
 if all(ts.shape == ts_filtered[0].shape for ts in ts_filtered):
     ts_array = np.stack(ts_filtered)
-    print("✅ Time series successfully stacked:", ts_array.shape)
+    print("Time series successfully stacked:", ts_array.shape)
 else:
-    print("⚠️ Time series shapes are inconsistent — can't stack.")
+    print("Time series shapes are inconsistent — can't stack.")
 
 #%%
 
@@ -172,7 +180,7 @@ else:
     np.savez("ts_filtered_unstacked.npz", ts=np.array(ts_filtered, dtype=object))
     print("Saved unstacked: ts_filtered_unstacked.npz (inconsistent shapes)")
 
-cog_data_sorted.to_csv("cog_data_filtered.csv", index=False)
+cog_data_filtered.to_csv("cog_data_filtered.csv", index=False)
 print("Saved: cog_data_filtered.csv")
 
 

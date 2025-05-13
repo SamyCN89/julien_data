@@ -7,6 +7,7 @@ Created on Mon Oct  2 14:42:38 2023
 """
 
 #%%
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import brainconn as bct
@@ -22,6 +23,8 @@ from scipy.special import erfc
 from scipy.stats import pearsonr, spearmanr
 
 from fun_loaddata import *
+
+
 from fun_dfcspeed import *
 
 #%%Figure's parameters
@@ -40,14 +43,15 @@ plt.rcParams.update({'axes.labelsize': 15,
                      'axes.spines.top': False})
 
 save_fig    = False
-save_data   = False
+save_data   = True
 # plt.style.use('seaborn-white')
 
 #%% Define paths, folders and hash
 root = '/home/samy/Bureau/Proyect/LauraHarsan/Ines/results/Timecourses_updated_03052024/'
 # folders = {'2mois': 'Lot3_2mois', '4mois': 'Lot3_4mois'}
 folders = {'2mois': 'TC_2months', '4mois': 'TC_4months'}
-folder_results = '/home/samy/Bureau/Proyect/LauraHarsan/Ines/results/'
+folder_results = Path('/home/samy/Bureau/vscode/julien_data/results/')
+folder_results.mkdir(parents=True, exist_ok=True)
 
 #%% Parameters speed
 window_parameter = (5,100,1)
@@ -69,7 +73,7 @@ print(f"Loaded cognitive data: {cog_data_sorted.shape[0]} rows")
 # Load fMRI data - Intersect the functional data for 2 and 4 months
 # =============================================================================
 #hash data
-# hash_parameters = ('lag=%s_tau=%s_wmax=%s_wmin=%s'%(lag,tau,window_parameter[1],window_parameter[0]))
+hash_parameters = ('lag=%s_tau=%s_wmax=%s_wmin=%s'%(lag,tau,window_parameter[1],window_parameter[0]))
 
 # # Load filenames and hash numbers
 # filenames       = {period: filename_sort_mat(os.path.join(root, folder)) for period, folder in folders.items()}
@@ -273,14 +277,14 @@ print('speed dist windows oversampling analysis time', stop-start,'s')
 if save_data==True:
     vel_list_asar = np.asarray(vel_list,dtype=object)
     # vel_list4m_a = np.asarray(vel_lis,dtype=object)
-    # np.savez(folder_results + 'speed/speed2m4m_dist' + hash_parameters, vel = vel_list_asar, vel_4m=vel_list4m_asar)
-    np.savez(folder_results + 'speed/speed2m4m_dist_03052024' + hash_parameters, 
-             vel     = vel_list_asar, 
-            #  vel_4m     = vel_list4m_a)
-    
+    # np.savez(folder_results + 'speed/speed2m4m_dist' + hash_parameters, vel = vel_list_asar, vel_4m=
+    (folder_results / Path('speed')).mkdir(parents=True, exist_ok=True)
+    np.savez(folder_results / f'speed/speed2m4m_dist_03052024_{hash_parameters}', vel     = vel_list_asar,speed_median = speed_median)
     #Check the load dataset
-    load_vel = np.load(folder_results + 'speed/speed2m4m_dist' + hash_parameters + '.npz', allow_pickle=True)
+    load_vel = np.load(folder_results / f'speed/speed2m4m_dist_03052024_{hash_parameters}.npz', allow_pickle=True)
 
     vel = load_vel['vel']
-    # vel_4m = load_vel['vel_4m']
+    speed_median = load_vel['speed_median']
 
+
+# %%
