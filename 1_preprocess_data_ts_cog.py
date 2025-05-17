@@ -44,16 +44,23 @@ PREPROCESS_DATA.mkdir(parents=True, exist_ok=True)
 #%%
 def load_mat_timeseries(folder: Path) -> tuple:
     """
-    Load time series from .mat files regardless of shape consistency.
+    Load all time series from .mat files in a given folder, regardless of shape consistency.
 
-    Returns
-    -------
-    ts_list : list of tuple
-        A list where each element is a loaded time series array (of shape [regions, timepoints]).
-    shapes  : list of tuple
-        The shapes of each loaded array.
-    files   : list of str
-        Filenames corresponding to the data.
+    Parameters
+    ----------
+    folder : Path
+        Path to the folder containing .mat files. Each file is expected to contain a variable 'tc' representing the time series.
+
+    ts_list : list of np.ndarray
+        List of loaded time series arrays, each typically of shape [regions, timepoints].
+    shapes : list of tuple
+        List of shapes corresponding to each loaded array.
+    names : list of str
+        List of filenames corresponding to each loaded time series.
+
+    Notes
+    -----
+    Files are loaded in reverse alphabetical order. If a file cannot be loaded or does not contain 'tc', an error message is printed and the file is skipped.
     """
     mat_files = sorted([f.name for f in folder.iterdir() if f.is_file()], reverse=True)
     ts_list, shapes, names = [], [], []
@@ -69,6 +76,14 @@ def load_mat_timeseries(folder: Path) -> tuple:
     return ts_list, shapes, names
 
 def extract_mouse_ids(filenames: list) -> list:
+    """Extract mouse IDs from filenames.
+
+    Args:
+        filenames (list): List of filename strings.
+
+    Returns:
+        list: List of extracted mouse IDs.
+    """
     cleaned = []
     for name in filenames:
         match = re.match(r"tc_Coimagine_(.+?)_(\d+)_\d+_seeds\.mat", name)
@@ -84,7 +99,7 @@ def main():
     # Check if all loaded files have the same shape
     if len(set(ts_shapes)) > 1:
         print("Warning: Not all loaded files have the same shape.")
-
+    # Extract mouse IDs from filenames
     ts_ids = extract_mouse_ids(loaded_files)
 
     # =============================================================================
@@ -92,7 +107,7 @@ def main():
     # =============================================================================
     #Load cognitive data
     cog_data     = pd.read_excel(COG_XLSX, sheet_name='mice_groups_comp_index')
-    cog_data['mouse'] = cog_data['mouse'].astype(str)
+    cog_data['mouse'] = cog_data['mouse'].astype(str) #Ensure mouse IDs are strings
 
     region_labels        = np.loadtxt(REGION_LABELS, dtype=str).tolist()
     region_labels_clean = [label.replace("Both_", "") for label in region_labels]
@@ -115,6 +130,10 @@ def main():
                                     pd.get_dummies(split_grp[0]),
                                     pd.get_dummies(split_grp[1])], axis=1)
 
+    print(f"Matched {len(matched_ids)} mice")
+    print(f"Region labels loaded: {len(region_labels_clean)}")
+    print(f"Filtered cognitive data shape: {cog_data_filtered.shape}")
+
     # Save processed data
     if all(ts.shape == ts_filtered[0].shape for ts in ts_filtered):
         ts_array = np.stack(ts_filtered)
@@ -129,3 +148,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# %%
