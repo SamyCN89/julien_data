@@ -6,18 +6,17 @@ Created on Mon Sep 23 13:26:30 2024
 @author: samy
 """
 #%%
+from pathlib import Path
 import numpy as np
-import os
+import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
-from pathlib import Path
 
-import sys
-sys.path.append('../shared_code')
+# import sys
+# sys.path.append('../shared_code')
 
-from fun_loaddata import extract_hash_numbers
-from fun_utils import filename_sort_mat, load_matdata, classify_phenotypes, make_combination_masks, make_masks
-import matplotlib.pyplot as plt
+from shared_code.fun_loaddata import extract_hash_numbers
+from shared_code.fun_utils import filename_sort_mat, load_matdata, classify_phenotypes, make_combination_masks, make_masks
 import time
 from scipy.io import loadmat
 import re
@@ -39,9 +38,11 @@ REGION_LABELS = ROOT / 'all_ROI_coimagine.txt'
 PREPROCESS_DATA = ROOT / 'preprocess_data'
 PREPROCESS_DATA.mkdir(parents=True, exist_ok=True)
 
-# -----------------------------------------------------------------------------
+#%%
+paths = get_paths(timecourse_folder=TS_FOLDER)
 
 #%%
+# -----------------------------------------------------------------------------
 def load_mat_timeseries(folder: Path) -> tuple:
     """
     Load all time series from .mat files in a given folder, regardless of shape consistency.
