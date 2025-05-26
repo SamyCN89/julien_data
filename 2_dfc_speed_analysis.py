@@ -66,42 +66,6 @@ print(f"Loaded cognitive data for {len(cog_data)} animals")
 assert len(ts_data) == len(cog_data), "Mismatch between time series and cognitive data entries."
 #%%
 
-# # =============================================================================
-# # Plot cognitive data scores
-# # =============================================================================
-# aux_data_type = 2
-
-# cog_wt_aux = (male_wt_data, female_wt_data, wt_data)[aux_data_type]
-# cog_dki_aux =(male_dki_data, female_dki_data, dki_data)[aux_data_type]
-
-# aux_l1 = ('Male','Female','All')
-# cog_aux_labels = ['%s WT 2M'%(aux_l1[aux_data_type]), '%s WT 4M'%(aux_l1[aux_data_type]), '%s dKI 2M'%(aux_l1[aux_data_type]), '%s dKI 4M'%(aux_l1[aux_data_type])]
-
-# #plot the aux_data_type
-# plt.figure(1,figsize=(10, 6.5))
-# plt.clf()
-
-# plt.subplot(211)
-# plt.title('Distribution of OiP scores for %s'%aux_l1[aux_data_type])
-# plt.violinplot((cog_wt_aux['OiP_2M'], cog_wt_aux['OiP_4M'], cog_dki_aux['OiP_2M'], cog_dki_aux['OiP_4M']))#,cmap='C1')
-# plt.xticks([1, 2, 3, 4], cog_aux_labels, fontsize=12)
-# plt.axhline(0,c='k')
-# plt.axhline(0.2,c='k',ls='--')
-# plt.axhline(-0.2,c='k',ls='--')
-# plt.ylabel('OiP score')
-
-# plt.subplot(212)
-# plt.title('Distribution of RO24h for %s'%aux_l1[aux_data_type])
-# plt.violinplot((cog_wt_aux['RO24h_2M'], cog_wt_aux['RO24h_4M'], cog_dki_aux['RO24h_2M'], cog_dki_aux['RO24h_4M']))
-# plt.xticks([1, 2, 3, 4], cog_aux_labels, fontsize=12)
-# plt.axhline(0,c='k')
-# plt.axhline(0.2,c='k',ls='--')
-# plt.axhline(-0.2,c='k',ls='--')
-# plt.ylabel('RO24h score')
-# plt.tight_layout()
-# if save_fig==True:
-#     plt.savefig('fig/cog_data/oip_ro24h_%s_wt_dki.png'%aux_l1[aux_data_type])
-#     plt.savefig('fig/cog_data/oip_ro24h_%s_wt_dki.pdf'%aux_l1[aux_data_type])
 
 
 #%% # Compute speed dFC
