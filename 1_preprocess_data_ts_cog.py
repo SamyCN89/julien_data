@@ -126,6 +126,7 @@ def main():
 
     #List of time series that match the mouse IDs in the cognitive data, preserving the order
     ts_filtered = [ts for ts, id_ in zip(ts_list, ts_ids) if id_ in matched_ids]
+    
 
     if len(ts_filtered) != len(cog_data_filtered):
         raise ValueError("Mismatch in time series and cognitive data entries.")
@@ -153,8 +154,9 @@ def main():
 
     cog_data_filtered.to_csv(paths['sorted'] / "cog_data_filtered.csv", index=False)
     print("Saved: cog_data_filtered.csv")
+    return ts_filtered
 
 if __name__ == "__main__":
-    main()
+    ts_filtered = main()
 
 # %%
