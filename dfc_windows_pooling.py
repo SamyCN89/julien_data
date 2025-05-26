@@ -16,18 +16,19 @@ import brainconn as bct
 import os
 import time
 import pandas as pd
-import sys
-sys.path.append('../shared_code')
+# import sys
+# sys.path.append('../shared_code')
 # from functions_analysis import *
 from scipy.io import loadmat, savemat
 from scipy.special import erfc
 from scipy.stats import pearsonr, spearmanr
 
-from fun_loaddata import *
-from fun_dfcspeed import pool_vel_windows, get_population_wpooling
+from shared_code.fun_loaddata import *
+from shared_code.fun_dfcspeed import pool_vel_windows, get_population_wpooling
 
 from fun_utils import set_figure_params
-from fun_bootstrap import handler_bootstrap_permutation
+from shared_code.fun_bootstrap import handler_bootstrap_permutation
+from shared_code.fun_utils import get_paths, set_figure_params
 
 from joblib import Parallel, delayed
 
@@ -63,6 +64,22 @@ TAU=3
 HASH_TAG = f"lag={LAG}_tau={TAU}_wmax={WINDOW_PARAM[1]}_wmin={WINDOW_PARAM[0]}"
 
 #%%
+paths = get_paths(dataset_name='julien_caillette', 
+                  timecourse_folder='time_courses',
+                  cognitive_data_file='mice_groups_comp_index.xlsx')
+
+#%%
+# USE_EXTERNAL_DISK = True
+# ROOT = Path('/media/samy/Elements1/Proyectos/LauraHarsan/dataset/julien_caillette/') if USE_EXTERNAL_DISK \
+#         else Path('/home/samy/Bureau/Proyect/LauraHarsan/dataset/julien_caillette/')
+# RESULTS_DIR = ROOT / Path('results')
+paths['speed'] = paths['results'] / 'speed'
+# paths['speed'].mkdir(parents=True, exist_ok=True)
+
+TS_FILE = paths['sorted'] / Path("ts_filtered_unstacked.npz")
+COG_FILE = paths['sorted'] / Path("cog_data_filtered.csv")
+
+SAVE_DATA = True
 #OLD REMOVE
 
 #%%
@@ -70,13 +87,31 @@ HASH_TAG = f"lag={LAG}_tau={TAU}_wmax={WINDOW_PARAM[1]}_wmin={WINDOW_PARAM[0]}"
 
 #Here we load the preprocessed cognitive and time- series data
 
-cog_data = pd.read_csv(PREPROCESS_DATA / "cog_data_filtered.csv")
-data = np.load(PREPROCESS_DATA / "ts_filtered_unstacked.npz", allow_pickle=True)
+cog_data = pd.read_csv(paths['sorted'] / "cog_data_filtered.csv")
+data = np.load(paths['sorted'] / "ts_filtered_unstacked.npz", allow_pickle=True)
 ts_filtered = data["ts"]
 
-vel_data = np.load(SPEED_DIR / f'speed_dfc_{HASH_TAG}.npz', allow_pickle=True)
+vel_data = np.load(paths['speed'] / f'speed_dfc_{HASH_TAG}.npz', allow_pickle=True)
 vel = vel_data['vel']
 speed_median = vel_data['speed_median']
+
+paths = get_paths(dataset_name='julien_caillette', 
+                  timecourse_folder='time_courses',
+                  cognitive_data_file='mice_groups_comp_index.xlsx')
+
+#%%
+# USE_EXTERNAL_DISK = True
+# ROOT = Path('/media/samy/Elements1/Proyectos/LauraHarsan/dataset/julien_caillette/') if USE_EXTERNAL_DISK \
+#         else Path('/home/samy/Bureau/Proyect/LauraHarsan/dataset/julien_caillette/')
+# RESULTS_DIR = ROOT / Path('results')
+paths['speed'] = paths['results'] / 'speed'
+# paths['speed'].mkdir(parents=True, exist_ok=True)
+
+TS_FILE = paths['sorted'] / Path("ts_filtered_unstacked.npz")
+COG_FILE = paths['sorted'] / Path("cog_data_filtered.csv")
+
+SAVE_DATA = True
+
 
 # ------------------------ Preprocessing ------------------------
 

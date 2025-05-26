@@ -29,18 +29,24 @@ import re
 
 # ------------------------Configuration------------------------
 # Set the path to the root directory of your dataset
-USE_EXTERNAL_DISK = True
-ROOT = Path('/media/samy/Elements1/Proyectos/LauraHarsan/dataset/julien/') if USE_EXTERNAL_DISK \
-        else Path('/home/samy/Bureau/Proyect/LauraHarsan/dataset/julien/')
+# USE_EXTERNAL_DISK = True
+# ROOT = Path('/media/samy/Elements1/Proyectos/LauraHarsan/dataset/julien/') if USE_EXTERNAL_DISK \
+#         else Path('/home/samy/Bureau/Proyect/LauraHarsan/dataset/julien/')
 
-TS_FOLDER = ROOT / 'time_courses'
-COG_XLSX = ROOT / 'mice_groups_comp_index.xlsx'
-REGION_LABELS = ROOT / 'all_ROI_coimagine.txt'
-PREPROCESS_DATA = ROOT / 'preprocess_data'
-PREPROCESS_DATA.mkdir(parents=True, exist_ok=True)
+paths = get_paths(dataset_name='julien_caillette', 
+                  timecourse_folder='time_courses',
+                  cognitive_data_file='mice_groups_comp_index.xlsx')
+
+paths['roi'] = paths['timeseries'] / 'all_ROI_coimagine.txt'
+
+# TS_FOLDER = paths['timeseries']
+# COG_XLSX = paths['cognitive_data']
+# PREPROCESS_DATA = ROOT / 'preprocess_data'
+# PREPROCESS_DATA.mkdir(parents=True, exist_ok=True)
 
 #%%
-paths = get_paths(timecourse_folder=TS_FOLDER)
+
+
 
 #%%
 # -----------------------------------------------------------------------------
@@ -97,7 +103,7 @@ def extract_mouse_ids(filenames: list) -> list:
 
 def main():
     # Load all time series data
-    ts_list, ts_shapes, loaded_files = load_mat_timeseries(TS_FOLDER)
+    ts_list, ts_shapes, loaded_files = load_mat_timeseries(paths['timeseries'])
     # Check if all loaded files have the same shape
     if len(set(ts_shapes)) > 1:
         print("Warning: Not all loaded files have the same shape.")
@@ -108,7 +114,7 @@ def main():
     # Load cognitive data from .xlsx document
     # =============================================================================
     #Load cognitive data
-    cog_data     = pd.read_excel(COG_XLSX, sheet_name='mice_groups_comp_index')
+    cog_data     = pd.read_excel(paths['cog_data'], sheet_name='mice_groups_comp_index')
     cog_data['mouse'] = cog_data['mouse'].astype(str) #Ensure mouse IDs are strings
 
     region_labels        = np.loadtxt(REGION_LABELS, dtype=str).tolist()
@@ -139,13 +145,13 @@ def main():
     # Save processed data
     if all(ts.shape == ts_filtered[0].shape for ts in ts_filtered):
         ts_array = np.stack(ts_filtered)
-        np.savez(PREPROCESS_DATA / "ts_filtered.npz", ts=ts_array)
+        np.savez(paths['sorted'] / "ts_filtered.npz", ts=ts_array)
         print(f"Saved: ts_filtered.npz with shape {ts_array.shape}")
     else:
-        np.savez(PREPROCESS_DATA / "ts_filtered_unstacked.npz", ts=np.array(ts_filtered, dtype=object))
+        np.savez(paths['sorted'] / "ts_filtered_unstacked.npz", ts=np.array(ts_filtered, dtype=object))
         print("Saved: ts_filtered_unstacked.npz")
 
-    cog_data_filtered.to_csv(PREPROCESS_DATA / "cog_data_filtered.csv", index=False)
+    cog_data_filtered.to_csv(paths['sorted'] / "cog_data_filtered.csv", index=False)
     print("Saved: cog_data_filtered.csv")
 
 if __name__ == "__main__":

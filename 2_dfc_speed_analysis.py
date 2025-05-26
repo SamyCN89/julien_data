@@ -13,8 +13,6 @@ import matplotlib.pyplot as plt
 import brainconn as bct
 import os
 import time
-import sys
-sys.path.append('../shared_code')
 
 import pandas as pd
 # from functions_analysis import *
@@ -22,9 +20,9 @@ from scipy.io import loadmat, savemat
 from scipy.special import erfc
 from scipy.stats import pearsonr, spearmanr
 
-from fun_loaddata import *  # Import only needed functions
-from fun_dfcspeed import parallel_dfc_speed_oversampled_series
-from fun_utils import set_figure_params, get_root_path, get_paths
+from shared_code.fun_loaddata import *  # Import only needed functions
+from shared_code.fun_dfcspeed import parallel_dfc_speed_oversampled_series
+from shared_code.fun_utils import set_figure_params, get_paths
 from tqdm import tqdm
 
 
@@ -32,22 +30,26 @@ from tqdm import tqdm
 #%% Define paths, folders and hash
 # ------------------------ Configuration ------------------------
 
-USE_EXTERNAL_DISK = True
-ROOT = Path('/media/samy/Elements1/Proyectos/LauraHarsan/dataset/julien/') if USE_EXTERNAL_DISK \
-        else Path('/home/samy/Bureau/Proyect/LauraHarsan/dataset/julien/')
-RESULTS_DIR = ROOT / Path('results')
-SPEED_DIR = RESULTS_DIR / 'speed'
-SPEED_DIR.mkdir(parents=True, exist_ok=True)
+paths = get_paths(dataset_name='julien_caillette', 
+                  timecourse_folder='time_courses',
+                  cognitive_data_file='mice_groups_comp_index.xlsx')
 
-PREPROCESS_DATA = ROOT / 'preprocess_data'
-TS_FILE = PREPROCESS_DATA / Path("ts_filtered_unstacked.npz")
-COG_FILE = PREPROCESS_DATA / Path("cog_data_filtered.csv")
+#%%
+# USE_EXTERNAL_DISK = True
+# ROOT = Path('/media/samy/Elements1/Proyectos/LauraHarsan/dataset/julien_caillette/') if USE_EXTERNAL_DISK \
+#         else Path('/home/samy/Bureau/Proyect/LauraHarsan/dataset/julien_caillette/')
+# RESULTS_DIR = ROOT / Path('results')
+paths['speed'] = paths['results'] / 'speed'
+# paths['speed'].mkdir(parents=True, exist_ok=True)
+
+TS_FILE = paths['sorted'] / Path("ts_filtered_unstacked.npz")
+COG_FILE = paths['sorted'] / Path("cog_data_filtered.csv")
 
 SAVE_DATA = True
 
 WINDOW_PARAM = (5,100,1)
 LAG=1
-TAU=3
+TAU=5
 
 HASH_TAG = f"lag={LAG}_tau={TAU}_wmax={WINDOW_PARAM[1]}_wmin={WINDOW_PARAM[0]}"
 
@@ -135,11 +137,11 @@ if SAVE_DATA:
     medians_array = np.array(speed_medians)
 
     np.savez(
-        SPEED_DIR / f"speed_dfc_{HASH_TAG}.npz",
+        paths['speed'] / f"speed_dfc_{HASH_TAG}.npz",
         vel=vel_array,
         speed_median=medians_array,
     )
-    print(f"Saved speed data to: {SPEED_DIR}")
+    print(f"Saved speed data to: {paths['speed']}")
 
 
 
