@@ -117,7 +117,7 @@ def main():
     cog_data     = pd.read_excel(paths['cog_data'], sheet_name='mice_groups_comp_index')
     cog_data['mouse'] = cog_data['mouse'].astype(str) #Ensure mouse IDs are strings
 
-    region_labels        = np.loadtxt(REGION_LABELS, dtype=str).tolist()
+    region_labels        = np.loadtxt(paths['roi'], dtype=str).tolist()
     region_labels_clean = [label.replace("Both_", "") for label in region_labels]
 
     matched_ids = [mid for mid in ts_ids if mid in cog_data['mouse'].values]
