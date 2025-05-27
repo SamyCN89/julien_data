@@ -9,7 +9,7 @@ Created on Mon Oct  2 14:42:38 2023
 #%%
 from pathlib import Path
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pltµ
 import brainconn as bct
 import os
 import time
@@ -19,10 +19,11 @@ import pandas as pd
 from scipy.io import loadmat, savemat
 from scipy.special import erfc
 from scipy.stats import pearsonr, spearmanr
+from sklearn.manifold import TSNE
 
 from shared_code.fun_loaddata import *  # Import only needed functions
 from shared_code.fun_dfcspeed import *
-from shared_code.fun_utils import set_figure_params, get_paths
+from shared_code.fun_utils import set_figure_params, get_paths, load_npz_dict
 from tqdm import tqdm
 
 
@@ -35,38 +36,42 @@ paths = get_paths(dataset_name='julien_caillette',
                   cognitive_data_file='mice_groups_comp_index.xlsx')
 
 #%%
-data_timeseries = np.load(paths['sorted'] / Path("ts_filtered_unstacked.npz"), allow_pickle=True)
-data_ts = data_timeseries['ts']
+# Load time series data
+# data_ts, n_animals, total_tp, regions, anat_labels = load_npz_dict(paths['sorted'] / Path('ts_filtered_unstacked.npz'))
+data = load_npz_dict(paths['sorted'] / Path('ts_filtered_unstacked.npz'))
+data_ts = data['ts']
+n_animals = data['n_animals']
+total_tp = data['total_tp']
+regions = data['regions']
+anat_labels = data['anat_labels']
+
+cog_data = pd.read_csv(paths['sorted'] / Path('cog_data_filtered.csv'))
+filtered_cog_data = cog_data[cog_data["n_timepoints"] >= 500]
+remaining_cog_data = cog_data[cog_data["n_timepoints"] < 500]
+# Assume cog_data is your DataFrame
+
+#%%
+
+# Print loaded data information
+print(f"Loaded time series data with shape: {data_ts.shape}")
+
 ts_data_filt = np.array([w for w in data_ts if w.shape[0] != 400])
+ts_remaining = np.array([w for w in data_ts if w.shape[0] == 400])
 
-
-# TS_FILE = paths['sorted'] / Path("ts_filtered_unstacked.npz")
-# COG_FILE = paths['sorted'] / Path("cog_data_filtered.csv")
+#%%
+# Parameters for dfc analysis
 processors = -1
 
-WINDOW_PARAM = (5,100,1)
-LAG=lag=1
-TAU=tau=5
+lag=1
+tau=5
+window_size = 9
+window_parameter = (5,100,1)
 
-HASH_TAG = f"lag={LAG}_tau={TAU}_wmax={WINDOW_PARAM[1]}_wmin={WINDOW_PARAM[0]}"
-#%%
-# ------------------------ Load Data ------------------------
+# time_window_min, time_window_max, time_window_step = window_parameter
+time_window_range = np.arange(window_parameter[0],
+                              window_parameter[1]+1,
+                              window_parameter[2])
 
-
-
-print(f"Loaded {len(data_ts)} time series")
-#%%
-#Remove the animals with 400 points
-
-
-
-
-prefix='dfc'
-time_window_range = np.arange(WINDOW_PARAM[0],
-                              WINDOW_PARAM[1] + 1,
-                              WINDOW_PARAM[2])
-n_animals, _, regions = ts_data_filt.shape
-# ts = ts_data_filt
 #%% # Compute speed dFC
 # =============================================================================
 # Speed analysis
@@ -79,15 +84,7 @@ import logging
 import joblib 
 logging.basicConfig(level=logging.INFO)
 
-def validate_inputs(ts_data, window_size, lag):
-    if not isinstance(ts_data, np.ndarray):
-        raise TypeError("ts_data must be a numpy array.")
-    if ts_data.ndim != 3:
-        raise ValueError("ts_data must be a 3D array (n_animals, n_regions, n_timepoints).")
-    if not isinstance(window_size, int) or window_size <= 0:
-        raise ValueError("window_size must be a positive integer.")
-    if not isinstance(lag, int) or lag <= 0:
-        raise ValueError("lag must be a positive integer.")
+
     
 def handler_get_tenet(ts_data, prefix, window_size, lag, format_data='3D', save_path=None):
     """
@@ -202,5 +199,6 @@ def get_tenet4window_range(ts, time_window_range, prefix, paths, lag, n_animals,
     except Exception as e:
         logger.error(f"Error occurred during {prefix} computation: {e}")
         raise
-get_tenet4window_range(data_ts, time_window_range, prefix='dfc', paths=paths, lag=lag, n_animals=n_animals, regions=regions, processors=processors)
+get_tenet4window_range(ts_data_filt, time_window_range, prefix='dfc', paths=paths, lag=lag, n_animals=len(ts_data_filt), regions=regions, processors=processors)
+get_tenet4window_range(ts_remaining, time_window_range, prefix='dfc', paths=paths, lag=lag, n_animals=len(ts_remaining), regions=regions, processors=processors)
 # %%

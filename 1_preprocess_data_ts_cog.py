@@ -126,7 +126,8 @@ def main():
 
     #List of time series that match the mouse IDs in the cognitive data, preserving the order
     ts_filtered = [ts for ts, id_ in zip(ts_list, ts_ids) if id_ in matched_ids]
-    
+    n_animals = len(ts_filtered)
+    total_tp, regions = ts_filtered[0].shape
 
     if len(ts_filtered) != len(cog_data_filtered):
         raise ValueError("Mismatch in time series and cognitive data entries.")
@@ -143,13 +144,32 @@ def main():
     print(f"Region labels loaded: {len(region_labels_clean)}")
     print(f"Filtered cognitive data shape: {cog_data_filtered.shape}")
 
+    #add the number of time points of each animal
+    cog_data_filtered['n_timepoints'] = [ts.shape[0] for ts in ts_filtered]
+
     # Save processed data
     if all(ts.shape == ts_filtered[0].shape for ts in ts_filtered):
         ts_array = np.stack(ts_filtered)
-        np.savez(paths['sorted'] / "ts_filtered.npz", ts=ts_array)
+        np.savez(paths['sorted'] / "ts_filtered.npz", 
+                 ts=ts_array,
+                 n_animals=n_animals,
+                 total_tp=total_tp,
+                 regions=regions,
+                 anat_labels = region_labels_clean)
+    #              ts=ts,  
+    #      n_animals=n_animals, 
+    # total_tp=total_tp, 
+    # regions=regions, 
+    # is_2month_old=is_2month_old,
+    # anat_labels=anat_labels,
         print(f"Saved: ts_filtered.npz with shape {ts_array.shape}")
     else:
-        np.savez(paths['sorted'] / "ts_filtered_unstacked.npz", ts=np.array(ts_filtered, dtype=object))
+        np.savez(paths['sorted'] / "ts_filtered_unstacked.npz", 
+                                ts=np.array(ts_filtered, dtype=object),
+                                n_animals=n_animals,
+                                total_tp=total_tp,
+                                regions=regions,
+                                anat_labels = region_labels_clean)
         print("Saved: ts_filtered_unstacked.npz")
 
     cog_data_filtered.to_csv(paths['sorted'] / "cog_data_filtered.csv", index=False)
